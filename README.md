@@ -1,12 +1,12 @@
-# VSUB-Manipulator
-Vixen's Starbound Universe and Being Manipulator
-A Starbound Save manipulator for Windows.
+## Vixen's Starbound Universe and Being Manipulator
+
+<sup>A Starbound Save manipulator for Windows.</sup>
 
  - Dynamic number of dataset slots
  - Dynamic number of backups per slot, oldest pruned after a modifiable number of backup per slot
  - Wizard to create the first dataset ever from your current Starbound saves the first time you run the script and make it active in the script
  
- ## Menus
+ ### Menus
  
  - Active Slot - Which dataset is actually active/used by Starbound
   
@@ -25,7 +25,7 @@ A Starbound Save manipulator for Windows.
       - Rename an existing dataset. Simple!
       - Delete a dataset (doesn't work on your current active dataset), clearing all the back-ups in that slot and wiping the name, ready to be reused!
  
- ## The point
+ ### The point
 
 Just because it's a annoying to move around and keep track of multiple save folders for different modpacks/users, and also that some mods can sometimes just decide to Thanos-snap your whole storage folder, so bye-bye your characters and your whole universe, start again back from 0.
 
