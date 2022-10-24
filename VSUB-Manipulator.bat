@@ -466,7 +466,7 @@ set chosenmenu=goto menu0
 set debugon=0
 set defaultslotcount=4
 set slotcount=!defaultslotcount!
-title Starbound  by Vix/Malhera
+title VSUB-Manipulator by Malhera/Vix
 set g1=echo /%g5%--------------------------\
 set g2=echo \%g5%--------------------------/
 set g3=                
