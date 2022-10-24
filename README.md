@@ -30,3 +30,9 @@
 Just because it's a annoying to move around and keep track of multiple save folders for different modpacks/users, and also that some mods can sometimes just decide to Thanos-snap your whole storage folder, so bye-bye your characters and your whole universe, start again back from 0.
 
 The point of that script? That what I just said above isn't a thing anymore. So far it isn't.
+
+
+
+#### Credits
+ - A vulpine
+ - A friend who helped with dynamic variable trickery who doesn't care to be named
