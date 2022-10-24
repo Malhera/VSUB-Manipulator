@@ -1,12 +1,12 @@
-## Vixen's Starbound Universe and Being Manipulator
+# Vixen's Starbound Universe and Being Manipulator
 
-<sup>A Starbound Save manipulator for Windows.</sup>
+***A Starbound Save manipulator for Windows.***
 
  - Dynamic number of dataset slots
  - Dynamic number of backups per slot, oldest pruned after a modifiable number of backup per slot
  - Wizard to create the first dataset ever from your current Starbound saves the first time you run the script and make it active in the script
  
- ### Menus
+ ## Menus
  
  - Active Slot - Which dataset is actually active/used by Starbound
   
@@ -25,11 +25,21 @@
       - Rename an existing dataset. Simple!
       - Delete a dataset (doesn't work on your current active dataset), clearing all the back-ups in that slot and wiping the name, ready to be reused!
  
- ### The point
+ ## The point
 
 Just because it's a annoying to move around and keep track of multiple save folders for different modpacks/users, and also that some mods can sometimes just decide to Thanos-snap your whole storage folder, so bye-bye your characters and your whole universe, start again back from 0.
 
 The point of that script? That what I just said above isn't a thing anymore. So far it isn't.
+
+
+
+ ### Why batch
+
+I wanted to share it to some people who aren't big on computer stuff.
+
+I didn't wanted to ask of people either to install python, nor to deal with powershell/vbs which can be obfuscated, nor ask of people to download an unsigned binary that I would have compiled in C# or netframework, or even more hassle and not much more reassuring for them, have them compile from source.
+
+At least with batch, it hides nothing, has no third party requirement, and works out of the box.
 
 
 
