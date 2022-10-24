@@ -52,7 +52,7 @@ if "%ops%"=="2" call:menuselect 1 restore & goto title
 if "%ops%"=="3" call:menuselect 3 switch & goto title
 if "%ops%"=="4" call:menuselect 3 manage & goto title
 if "%ops%"=="5" goto exit
-if "%ops%"=="?" call:help & pause & goto title
+if "%ops%"=="?" call:help0 & pause & goto title
 color 0c%la%goto title
 REM --------------------------------------------------------------------------------Backuplist menu
 :menu1
@@ -702,7 +702,7 @@ IF ErrorLevel 1 (
 (echo !dataslotname%~1!)>>"%starboundpath%\storage\set.bin"
 goto:EOF
 REM --------------------------------------------------------------------------------HELP
-:help
+:help0
 echo Help:
 echo # Active Slot - Which dataset is actually active/used by Starbound
 echo # Backup      - Make an new backup for your Active Slot.
