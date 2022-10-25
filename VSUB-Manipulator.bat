@@ -79,19 +79,31 @@ IF NOT exist "%backuplocation%\dataslot%backupslot%\backup_????-??-??_??-??-??" 
 ) else (
     for /F "delims=" %%a in ('dir /ad /o-n /b "%backuplocation%\dataslot%backupslot%\backup_????-??-??_??-??-??"') do ( 
         set /A COUNT=!COUNT! + 1
-        set "line=  #              !COUNT!-- %%a               %g3%%g3%"
+        call:math !COUNT! 9
+        set "padding= "
+        set "hpadding= "
+        set "hdash=-"
+        if !mathresult!==1 (
+            set "padding="
+            call:math !COUNT! 99
+            if !mathresult!==1 (
+                set "hpadding=" 
+                set "hdash="
+            )
+        )
+        set "line=  #             !padding!!COUNT!-!hdash!!hpadding![...]\dataslot%backupslot%\%%a               %g3%%g3%"
         set "line=!line:~0,76! #"
         echo !line! 
     )
     if "!menumode1!"=="import" (
         set /A COUNT=!COUNT! + 1
-        set "line=  #              !COUNT!-- FULL dataset copy into Slot %selectedimportdest%%g3%%g3%"
+        set "line=  #             !padding!!COUNT!-!hdash!!hpadding!FULL dataset copy into Slot %selectedimportdest%%g3%%g3%"
         set "line=!line:~0,76! #"
         echo !line! 
     )
 )
 set /A lastoption=!COUNT! + 1
-set "line=  #              %lastoption%-- Go back to main menu     %g3%%g3%"
+set "line=  #             !padding!%lastoption%-!hdash!!hpadding!Go back to main menu     %g3%%g3%"
 set "line=%line:~0,76% #"
 echo %line%
 %minig2%%g3%%la%color 0F
@@ -100,7 +112,14 @@ set ops | FINDSTR /R /C:"[&""|()]">nul
 IF NOT ERRORLEVEL 1 set ops=0 >nul
 echo.
 set /A ops=%ops% + 1 - 1
-IF %ops% GEQ 1 IF %ops% LEQ !COUNT! (
+REM math IF %ops% GEQ 1 IF %ops% LEQ !COUNT!
+call:math %ops% 1
+set "Test1=" & IF "!mathresult!"=="1" set "Test1=1"
+IF "!mathresult!"=="0" set "Test1=1"
+call:math %ops% !COUNT!
+set "Test2=" & IF "!mathresult!"=="-1" set "Test2=1"
+IF "!mathresult!"=="0" set "Test2=1"
+IF !Test2!==1 IF !Test1!==1 (
     if "!menumode1!"=="restore" (
         set COUNT=0
         for /F "delims=" %%a in ('dir /ad /o-n /b "%backuplocation%\dataslot%backupslot%\*"') do ( 
@@ -277,7 +296,7 @@ if "!menumode3!"=="switch" (
     )
     set /A lastoption=!COUNT! + 1
     echo   # - - -%g3%%g3%%g3%add f before number #
-    set "lastline=  #              !lastoption!--Go back to main menu              to not backup ex: f1%g3%"
+    set "lastline=  #             !padding!!lastoption!-!hdash!!hpadding!Go back to main menu              to not backup ex: f1%g3%"
     set "lastline=!lastline:~0,76! #"
     echo !lastline!
 ) else if "!menumode3!"=="manage" (
@@ -290,7 +309,7 @@ if "!menumode3!"=="switch" (
     )
     set /A lastoption=!COUNT! + 1
     echo   # - - -%g3%%g3%%g3%              - - - #
-    set "lastline=  #              !lastoption!--Go back to main menu%g3%%g3%%g3%"
+    set "lastline=  #             !padding!!lastoption!-!hdash!!hpadding!Go back to main menu%g3%%g3%%g3%"
     set "lastline=!lastline:~0,76! #"
     echo !lastline!
 ) else if "!menumode3!"=="import" (
@@ -305,7 +324,7 @@ if "!menumode3!"=="switch" (
     )
     set /A lastoption=!COUNT! + 1
     echo   # - - -%g3%%g3%%g3%              - - - #
-    set "lastline=  #              !lastoption!--Go back to main menu%g3%%g3%%g3%"
+    set "lastline=  #             !padding!!lastoption!-!hdash!!hpadding!Go back to main menu%g3%%g3%%g3%"
     set "lastline=!lastline:~0,76! #"
     echo !lastline!
 ) else if "!menumode3!"=="createnoback" (
@@ -333,9 +352,16 @@ set /p ops=Type the corresponding number of your choice then press ENTER:
 set ops | FINDSTR /R /C:"[&""|()]">nul
 IF NOT ERRORLEVEL 1 set ops=0 >nul
 echo.
+REM math IF %ops% GEQ 1 IF %ops% LEQ !COUNT!
+call:math %ops:f=% 1
+set "Test1=" & IF "!mathresult!"=="1" set "Test1=1"
+IF "!mathresult!"=="0" set "Test1=1"
+call:math %ops:f=% !COUNT!
+set "Test2=" & IF "!mathresult!"=="-1" set "Test2=1"
+IF "!mathresult!"=="0" set "Test2=1"
 IF "!menumode3!"=="switch" (
     if "%ops%"=="%lastoption%" call:menuselect 0%la%goto title
-    IF "%ops:f=%" GEQ "1" IF "%ops:f=%" LEQ "!COUNT!" (
+    IF !Test2!==1 IF !Test1!==1 (
         IF "%ops:f=%"=="%activedsnum%" (
             goto title
         )
@@ -371,7 +397,7 @@ IF "!menumode3!"=="switch" (
     )
 ) else if "!menumode3!"=="manage" (
     if "%ops%"=="%lastoption%" call:menuselect 0%la%goto title
-    IF "%ops%" GEQ "1" IF "%ops%" LEQ "!COUNT!" (
+    IF !Test2!==1 IF !Test1!==1 (
         set /A ops=%ops% + 1 - 1
         set selectedmanageslot=%ops%
         call:menuselect manageslot & goto title
@@ -381,7 +407,7 @@ IF "!menumode3!"=="switch" (
         call:menuselect manageslot
         goto title
     )
-    IF "%ops%" GEQ "1" IF "%ops%" LEQ "!COUNT!" (
+    IF !Test2!==1 IF !Test1!==1 (
         set /A ops=%ops% + 1 - 1
         set selectedimportsource=!menuslotselected%ops%!
         if "!selectedimportsource!"=="%activedsnum%" (
@@ -392,7 +418,7 @@ IF "!menumode3!"=="switch" (
         call:menuselect 1 import & goto title
     ) 
 ) else if "!menumode3!"=="createnoback" (
-    IF "%ops%" GEQ "1" IF "%ops%" LEQ "!COUNT!" (
+    IF !Test2!==1 IF !Test1!==1  (
         set /A ops=%ops% + 1 - 1
         set selectedmanageslot=!menuslotselected%ops%!
         call:menuselect 2 createnoback & goto title
@@ -435,7 +461,7 @@ if  "!selectedmanageslotname!"=="Empty" (
     if "%ops%"=="3" call:menuselect 3 manage & goto title
 ) else (
     if "%ops%"=="1" call:menuselect 2 rename & goto title
-    if %selectedmanageslot% NEQ %activedsnum% (
+    if NOT "!mathresult!"=="%activedsnum%" (
         if "%ops%"=="2" (
             set ops2=0
             echo WARNING: This will delete all backups of this slot.
@@ -463,7 +489,7 @@ color 0F
 set "count1=timeout /t 1 /nobreak >nul"
 set "backuplocation=%starboundpath%\backupstorage"
 set chosenmenu=goto menu0
-set debugon=0
+set "debug=0"
 set defaultslotcount=4
 set slotcount=!defaultslotcount!
 title VSUB-Manipulator by Malhera/Vix
@@ -570,21 +596,46 @@ FOR /L %%c IN (1,1,!slotcount!) DO (
 goto:EOF
 REM --------------------------------------------------------------------------------Backup storage scrubber
 :detectbackups
+set lastfounddataslot=0
 if NOT exist "%backuplocation%" (
     mkdir "%backuplocation%"
 ) else (
     if exist "%backuplocation%\dataslot*" (
-    for /F "tokens=* delims=" %%a in ('dir /AD /B /O-N "%backuplocation%\dataslot*"') do ( 
-        set lastfound=%%a & set lastfounddataslot=!lastfound:dataslot=! & goto :breakloop1 )
+        for /F "delims=" %%a in ('dir /ad /o-n /b "%backuplocation%\dataslot*"') do (
+            set tempdataslot=%%a
+            set /A dstrim=!tempdataslot:dataslot=! + 1 - 1
+            REM IF !dstrim! GTR !lastfounddataslot!
+            call:math !dstrim! !lastfounddataslot!
+            if %debug%==1 ( echo IF !dstrim! GTR !lastfounddataslot! )
+            if "!mathresult!"=="1" (
+                set lastfounddataslot=!dstrim!
+            ) 
+        )
     )
 )
-:breakloop1
 if exist "%backuplocation%\dataslot*" (
-    IF "%activedsnum%" GTR "!slotcount!" set /A slotcount=!activedsnum! + 1
-    IF "!lastfounddataslot!" LEQ "!slotcount!" (
+    REM IF "%activedsnum%" GTR "!slotcount!"
+    call:math %activedsnum% !slotcount!
+      if %debug%==1 ( echo IF "%activedsnum%" GTR "!slotcount!" )
+      IF !mathresult!==1 ( set /A slotcount=!activedsnum! + 1 )
+    REM  IF "!lastfounddataslot!" LEQ "!slotcount!"
+    call:math !lastfounddataslot! !slotcount!
+    set "Test=" & IF "!mathresult!"=="-1" set Test=1
+    IF "!mathresult!"=="0" set Test=1
+    set "Test2=" & IF "!mathresult!"=="1" set Test2=1
+    IF "!mathresult!"=="0" set Test2=1
+    if %debug%==1 ( echo IF "!lastfounddataslot!" LEQ "!slotcount!" )
+    IF !Test!==1 (
         set /A slotcount=!lastfounddataslot! + 1
-        if !slotcount! LEQ %defaultslotcount% set slotcount=%defaultslotcount%
-    ) else if !lastfounddataslot! GEQ !slotcount! (
+        REM IF !slotcount! LEQ %defaultslotcount%
+        call:math !slotcount! %defaultslotcount%
+        set "Test3=" & IF "!mathresult!"=="-1" set Test3=1
+        IF "!mathresult!"=="0" set Test3=1
+        if %debug%==1 ( echo IF !slotcount! LEQ %defaultslotcount% )
+        IF !Test3!==1 set slotcount=%defaultslotcount%
+    REM else IF !lastfounddataslot! GEQ !slotcount!
+    if %debug%==1 ( echo else IF !lastfounddataslot! GEQ !slotcount! )
+    ) else if !Test2!==1 (
         set /A slotcount=!lastfounddataslot! + 1
     )
 )
@@ -605,16 +656,27 @@ FOR /L %%c IN (1,1,!slotcount!) DO (
         )
     )
 )
+if %debug%==1 ( pause )
 goto:EOF
 REM --------------------------------------------------------------------------------dataslot display in Main Menu
-REM --------------------------------------------------------------------------------displaydataslotinmenu :slot#: :dataslotname:
+REM --------------------------------------------------------------------------------displaydataslotinmenu :slot#: :dataslotname: :activedataslot#:
 :displaydataslotinmenu
+if %debug%==1 ( echo call:displaydataslotinmenu %1 %2 %3 )
 set "spaces=%g3%%g3%%g3%"
+call:math %~1 9
+set "padding= "
+set "hpadding= "
+set "hdash=-"
+if !mathresult!==1 (
+set "padding="
+call:math %~1 99
+if !mathresult!==1 set "hpadding=" & set "hdash="
+)
 if "%~1"=="%activedsnum%" (
-    set "slotline=  # [ACTIVE]-    %~3-- Slot %~1 : %~2%spaces%"
+    set "slotline=  # [ACTIVE]-   !padding!%~3!hdash!-!hpadding!Slot!hpadding!%~1!padding!: %~2%spaces%"
     set "slotline=!slotline:~0,66! -[ACTIVE] #"
 ) else (
-    set "slotline=  #              %~3-- Slot %~1 : %~2%spaces%"
+    set "slotline=  #             !padding!%~3!hdash!-!hpadding!Slot!hpadding!%~1!padding!: %~2%spaces%"
     set "slotline=!slotline:~0,76! #"
 )
 set menuslotselected%~3=%~1
@@ -631,6 +693,7 @@ if NOT exist "%backuplocation%\dataslot%activedsnum%\setname.bin" (echo %actived
 goto:EOF
 REM --------------------------------------------------------------------------------Readnamefromdataslot :slot#:
 :readnamefromdataslot
+if %debug%==1 ( echo call:readnamefromdataslot %1 )
 set "var=1"
 for /f "tokens=1,* delims=:" %%a in ('findstr /n "^" "%backuplocation%\dataslot%~1\setname.bin" ^|findstr "^%var%:"') do set trim=%%b
 for /l %%a in (1,1,60) do if "!trim:~-1!"==" " set trim=!trim:~0,-1!
@@ -638,6 +701,7 @@ set currdataslotnam=!trim!
 goto:EOF
 REM --------------------------------------------------------------------------------Display active dataslot in head menu bar
 :displayactivedataslot
+if %debug%==1 ( echo call:displayactivedataslot %activedsnam% %activedsnum% )
 set "spaces=---------------------------------------------------------------"
 set "line=  /---{Active Data Slot :  %activedsnum% - %activedsnam%"
 set "line=%line:~0,73%}%spaces%"
@@ -645,8 +709,9 @@ set "line=%line:~0,76%-\"
 echo %line%
 goto:EOF
 REM --------------------------------------------------------------------------------Display selected slot in head menu bar and detect if empty
-REM --------------------------------------------------------------------------------displayselectedslot :slot#:
+REM --------------------------------------------------------------------------------displayselectedslot :slot#: :activeslot#:
 :displayselectedslot
+if %debug%==1 ( echo call:displayselectedslot %1 %2 )
 IF "%~1"=="0" (
     set %~1=X
     set dataslotnameX=ERROR : Don't proceed
@@ -665,6 +730,7 @@ set selectedmanageslotname=!dataslotname%~1!
 goto:EOF
 REM --------------------------------------------------------------------------------makebackup :slot#: :name:
 :makebackup
+if %debug%==1 ( echo call:makebackup %1 %2 )
 IF NOT exist "%backuplocation%\dataslot%~1" mkdir "%backuplocation%\dataslot%~1"
 (echo %~2)> "%backuplocation%\dataslot%~1\setname.bin"
 for /f "tokens=2 delims==" %%a in ('wmic OS Get localdatetime /value') do set "dt=%%a"
@@ -700,6 +766,48 @@ IF ErrorLevel 1 (
 )
 (echo %~1)>"%starboundpath%\storage\set.bin"
 (echo !dataslotname%~1!)>>"%starboundpath%\storage\set.bin"
+goto:EOF
+REM --------------------------------------------------------------------------------Math, because batch is doofus
+REM --------------------------------------------------------------------------------call:math ### ###
+REM --------------------------------------------------------------------------------returns -1 if first number smaller than second
+REM --------------------------------------------------------------------------------returns 0 if equal
+REM --------------------------------------------------------------------------------returns 1 if first number greater than second
+:math
+if %debug%==1 ( echo call:math %1 %2 )
+call :compareFloats %1 %2
+:compareFloats
+set mathresult=
+set n1=%1
+set n2=%2
+set int1=0
+set int2=0
+set dec1=0
+set dec2=0
+for /f "tokens=1,2 delims=." %%a in ("%n1%.0") do (
+    set int1=%%a
+    set dec1=%%b
+)
+for /f "tokens=1,2 delims=." %%a in ("%n2%.0") do (
+    set int2=%%a
+    set dec2=%%b
+)
+if !int1! EQU !int2! (
+    if !dec1! EQU !dec2! (
+        set "mathresult=0"
+    ) else (
+        if !dec1! LSS !dec2! (
+            set "mathresult=-1"
+        ) else (
+            set "mathresult=1"
+        )
+    )
+) else (
+    if !int1! LSS !int2! (
+        set "mathresult=-1"
+    ) else (
+        set "mathresult=1"
+    )
+)
 goto:EOF
 REM --------------------------------------------------------------------------------HELP
 :help0
