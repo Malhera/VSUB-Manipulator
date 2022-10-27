@@ -204,6 +204,8 @@ if NOT "!menumode2!"=="createnoback"  (
         if "%newname%"=="b" call:menuselect 1 import & goto title
     ) else if "!menumode2!"=="create" (
         if "%newname%"=="b" call:menuselect manageslot & goto title
+    ) else if "!menumode2!"=="rename" (
+        if "%newname%"=="b" call:menuselect manageslot & goto title
     )
 )
 set ops2=0
