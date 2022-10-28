@@ -11,9 +11,9 @@
  - Active Slot - Which dataset is actually active/used by Starbound
   
  - 1 - Backup  : Create a new backup on active dataset slot
-  
+    - m1       - Manual modifier, allows to create a named backup that can't get pruned automatically
  - 2 - Restore : Lets you list your backups for your Active slot, and restore from one.
-  
+    - d#       - in the Restore menu, d + backup slot lets you delete the chosen backup after confirmation
  - 3 - Switch  : Lets you switch your Active Slot, making an automatic backup for it before restoring an other slot as your Active Slot
     - f option  - By adding " f " in front of the number of the slot you want to switch to, you can avoid generating a new backup on your current active dataset before switching.  
       - If your current dataset doesn't have any backup yet, this option will be overwritten to generate a backup anyways.
