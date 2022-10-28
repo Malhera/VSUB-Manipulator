@@ -2,8 +2,8 @@
 
 ***A Starbound Save manipulator for Windows.***
 
- - Dynamic number of dataset slots
- - Dynamic number of backups per slot, oldest pruned after a modifiable number of backup per slot
+ - Dynamic number of dataset slots, name and rename them!
+ - Dynamic number of backups per slot, oldest pruned after a modifiable number of backup per slot, + manual named backups that are immune to the pruning!
  - Wizard to create the first dataset ever from your current Starbound saves the first time you run the script and make it active in the script
  
  ## Menus
