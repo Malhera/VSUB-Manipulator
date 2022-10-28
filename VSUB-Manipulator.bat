@@ -19,15 +19,18 @@ set ops=0
 call:displayactivedataslot
 echo   #        Choose the kind of operation you want to execute on data sets     #
 IF "!lastbackup!"=="1" (
-    set "line=  # %lastbackup_stamp%     1--Backup - [DONE] on Slot %lastbackup_slot% : %lastbackup_name%%g3%%g3%%g3%"
+    set "line=  # %lastbackup_stamp%     1--Backup -  [DONE] on Slot %lastbackup_slot% : %lastbackup_name:_= %%g3%%g3%%g3%"
+) ELSE IF "!lastbackup!"=="3" (
+    set "line=  # %lastbackup_stamp% [M] 1--Backup -  [DONE] Name: %lastbackup_name:_= %%g3%%g3%%g3%"
 ) ELSE IF "!lastbackup!"=="2" (
-    set "line=  #              1--Backup - [FAILED] on Slot %lastbackup_slot% : %lastbackup_name%%g3%%g3%%g3%"
+    set "line=  #              1--Backup -  [FAILED] on Slot %lastbackup_slot% : %lastbackup_name:_= %%g3%%g3%%g3%"
+) ELSE IF "!lastbackup!"=="4" (
+    set "line=  #          [M] 1--Backup -  [FAILED] Name: %lastbackup_name:_= %%g3%%g3%%g3%"
 ) ELSE (
     set "line=  #              1--Backup   %g3%%g3%%g3%"
 )
 set "line=%line:~0,76% #"
 echo %line%
-
 IF "!lastrestore!"=="1" (
     set "line=  # %lastrestore_stamp%     2--Restore - [DONE] on Slot %lastrestore_slot% : %lastrestore_name%%g3%%g3%%g3%"
 ) ELSE IF "!lastrestore!"=="2" (
@@ -52,6 +55,7 @@ if "%ops%"=="2" call:menuselect 1 restore & goto title
 if "%ops%"=="3" call:menuselect 3 switch & goto title
 if "%ops%"=="4" call:menuselect 3 manage & goto title
 if "%ops%"=="5" goto exit
+if "%ops%"=="m1" call:menuselect 2 namedbackup & goto title
 if "%ops%"=="?" call:help0 & pause & goto title
 color 0c%la%goto title
 REM --------------------------------------------------------------------------------Backuplist menu
@@ -91,7 +95,12 @@ IF NOT exist "%backuplocation%\dataslot%backupslot%\backup_????-??-??_??-??-??" 
                 set "hdash="
             )
         )
-        set "line=  #             !padding!!COUNT!-!hdash!!hpadding![...]\dataslot%backupslot%\%%a               %g3%%g3%"
+        IF exist "%backuplocation%\dataslot%backupslot%\%%a\backupname.bin" (
+         for /f "tokens=1,* delims=:" %%b in ('findstr /n "^" "%backuplocation%\dataslot%backupslot%\%%a\backupname.bin" ^|findstr "^1:"') do set tempbackupname=%%c
+            set "line=  #   [MANUAL]  !padding!!COUNT!-!hdash!!hpadding![...]\dataslot%backupslot%\!tempbackupname:_= !               %g3%%g3%"
+        ) else (
+            set "line=  #             !padding!!COUNT!-!hdash!!hpadding![...]\dataslot%backupslot%\%%a               %g3%%g3%"
+        )
         set "line=!line:~0,76! #"
         echo !line! 
     )
@@ -111,34 +120,66 @@ set /p ops=Type the corresponding number of your choice then press ENTER:
 set ops | FINDSTR /R /C:"[&""|()]">nul
 IF NOT ERRORLEVEL 1 set ops=0 >nul
 echo.
-set /A ops=%ops% + 1 - 1
 REM math IF %ops% GEQ 1 IF %ops% LEQ !COUNT!
-call:math %ops% 1
+call:math %ops:d=% 1
 set "Test1=" & IF "!mathresult!"=="1" set "Test1=1"
 IF "!mathresult!"=="0" set "Test1=1"
-call:math %ops% !COUNT!
+call:math %ops:d=% !COUNT!
 set "Test2=" & IF "!mathresult!"=="-1" set "Test2=1"
 IF "!mathresult!"=="0" set "Test2=1"
 IF !Test2!==1 IF !Test1!==1 (
-    if "!menumode1!"=="restore" (
-        set COUNT=0
-        for /F "delims=" %%a in ('dir /ad /o-n /b "%backuplocation%\dataslot%backupslot%\*"') do ( 
-            set /A COUNT=!COUNT! + 1
-            IF "%ops%"=="!COUNT!" (
-                call:restore "%backupslot%" "%%a" & call:menuselect 0 & goto title
-            )  
-        )
-    ) else if "!menumode1!"=="import" (
-        if "%ops%"=="!COUNT!" (
-            set "importsourcebackup=all" & call:menuselect 2 import & goto title
-        ) else (
+    IF NOT "%ops:~0,1%"=="d" (
+        if "!menumode1!"=="restore" (
             set COUNT=0
-            for /F "delims=" %%a in ('dir /ad /o-n /b "%backuplocation%\dataslot%selectedimportsource%\*"') do ( 
+            for /F "delims=" %%a in ('dir /ad /o-n /b "%backuplocation%\dataslot%backupslot%\*"') do ( 
                 set /A COUNT=!COUNT! + 1
                 IF "%ops%"=="!COUNT!" (
-                    set "importsourcebackup=%%a" & call:menuselect 2 import & goto title
+                    call:restore "%backupslot%" "%%a" & call:menuselect 0 & goto title
                 )  
-            ) 
+            )
+        ) else if "!menumode1!"=="import" (
+            set /A ops=%ops% + 1 - 1
+            if "%ops%"=="!COUNT!" (
+                set "importsourcebackup=all" & call:menuselect 2 import & goto title
+            ) else (
+                set COUNT=0
+                for /F "delims=" %%a in ('dir /ad /o-n /b "%backuplocation%\dataslot%selectedimportsource%\*"') do ( 
+                    set /A COUNT=!COUNT! + 1
+                    IF "%ops%"=="!COUNT!" (
+                        set "importsourcebackup=%%a" & call:menuselect 2 import & goto title
+                    )  
+                ) 
+            )
+        )
+    ) else (
+        if "!menumode1!"=="restore" (
+            set COUNT=0
+            for /F "delims=" %%a in ('dir /ad /o-n /b "%backuplocation%\dataslot%backupslot%\*"') do ( 
+                set /A COUNT=!COUNT! + 1
+                IF "%ops:d=%"=="!COUNT!" (
+                    echo Confirm you want to delete the following backup:
+                    if exist "%backuplocation%\dataslot%backupslot%\%%a\backupname.bin" (
+                        call:readnamefrombackup %backupslot% %%a
+                        echo [...]\dataslot%backupslot%\%%a
+                        echo ---Backup name : "!tempbackupname:_= !"
+                    ) else (
+                        echo [...]\dataslot%backupslot%\*%%a
+                    )
+                    set /p ops2=Type "DELETE" to validate name, anything else cancels:
+                    set ops | FINDSTR /R /C:"[&""|()]">nul
+                    IF NOT ERRORLEVEL 1 set ops2=0 >nul
+                    echo.
+                    if "!ops2!"=="DELETE" (
+                        echo Deletion confirmed...
+                        rd /Q /S "%backuplocation%\dataslot%backupslot%\%%a"
+                        echo Done!
+                        timeout 1 > NUL
+                        goto title
+                    ) else (
+                        color 0c%la%goto title
+                    )
+                )
+            )
         )
     )
 )
@@ -162,7 +203,7 @@ if "!menumode2!"=="create" (
     set "menuline1=  #             Choose a new name for your dataset on Slot %selectedmanageslot%%g3%%g3%%g3%"
     set "menuline1=!menuline1:~0,76! #"
     echo !menuline1!
-    set "menuline2=  #     Current name = !selectedmanageslotname!%g3%%g3%%g3%%g3%"
+    set "menuline2=  #     Current name = !selectedmanageslotname:_= !%g3%%g3%%g3%%g3%"
     set "menuline2=!menuline2:~0,76! #"
     echo !menuline2!
 ) else if "!menumode2!"=="import" (
@@ -185,6 +226,12 @@ if "!menumode2!"=="create" (
     set "menuline1=  #             Choose a name for your current dataset on Slot %selectedmanageslot%%g3%%g3%%g3%"
     set "menuline1=!menuline1:~0,76! #"
     echo !menuline1!
+) else if "!menumode2!"=="namedbackup" (
+    call:displayactivedataslot
+    set backupslot=%activedsnum%
+    set "menuline1=  #         Choose a name for a new manual backup for active slot !backupslot!%g3%%g3%"
+    set "menuline1=!menuline1:~0,76! #"
+    echo !menuline1!
 )
     echo   # - - -%g3%%g3%%g3%              - - - #
     echo   #      Try to keep it under 30 characters if possible for lisibility.      #
@@ -195,6 +242,7 @@ if "!menumode2!"=="createnoback" (
     echo   # - - -%g3%%g3%%g3%Type "b" to go back #
 ) 
 %minig2%%g3%%la%color 0F
+set "newname=%RANDOM%%RANDOM%%RANDOM%"
 set /p newname=Type the desired name and then press ENTER: 
 set ops | FINDSTR /R /C:"[&""|()]">nul
 IF NOT ERRORLEVEL 1 set ops=0 >nul
@@ -206,17 +254,21 @@ if NOT "!menumode2!"=="createnoback"  (
         if "%newname%"=="b" call:menuselect manageslot & goto title
     ) else if "!menumode2!"=="rename" (
         if "%newname%"=="b" call:menuselect manageslot & goto title
+    ) else if "!menumode2!"=="namedbackup" (
+        if "%newname%"=="b" call:menuselect 0 & goto title
     )
 )
 set ops2=0
-echo Confirm the following: "!newname:~0,50!"
+set displayname=!newname!
+set newname=!newname: =_!
+echo Confirm the following: "!displayname:~0,50!"
 set /p ops2=Type "CONFIRM" to validate name, anything else cancels:
 set ops | FINDSTR /R /C:"[&""|()]">nul
 IF NOT ERRORLEVEL 1 set ops2=0 >nul
 echo.
 if "!menumode2!"=="create" (
     if "!ops2!"=="CONFIRM" (
-        echo Creating Dataset "!newname:~0,50!" in Slot %selectedmanageslot% ...
+        echo Creating Dataset "!displayname:~0,50!" in Slot %selectedmanageslot% ...
         if NOT exist "%backuplocation%\dataslot%selectedmanageslot%" mkdir "%backuplocation%\dataslot%selectedmanageslot%"
         (echo !newname:~0,50!)>"%backuplocation%\dataslot%selectedmanageslot%\setname.bin"
         IF NOT exist "%backuplocation%\dataslot%selectedmanageslot%\backup_????-??-??_??-??-??" (
@@ -231,7 +283,7 @@ if "!menumode2!"=="create" (
 )
 if "!menumode2!"=="rename" (
     if "!ops2!"=="CONFIRM" (
-        echo Renaming Dataset "!newname:~0,50!" in Slot %selectedmanageslot% ...
+        echo Renaming Dataset "!displayname:~0,50!" in Slot %selectedmanageslot% ...
         if NOT exist "%backuplocation%\dataslot%selectedmanageslot%" mkdir "%backuplocation%\dataslot%selectedmanageslot%"
         IF "%activedsnum%"=="%selectedmanageslot%" (
             (echo %activedsnum%)>"%starboundpath%\storage\set.bin"
@@ -251,7 +303,7 @@ if "!menumode2!"=="import" (
         echo Cleaning destination Slot %selectedimportdest%...
         if exist "%backuplocation%\dataslot%selectedimportdest%" rd /Q /S "%backuplocation%\dataslot%selectedimportdest%"
         timeout 1 > NUL
-        echo Naming Imported Dataset "!newname:~0,50!" in Slot %selectedmanageslot% ...
+        echo Naming Imported Dataset "!displayname:~0,50!" in Slot %selectedmanageslot% ...
         mkdir "%backuplocation%\dataslot%selectedimportdest%"
         if "%importsourcebackup%"=="all" (
             xcopy /s/e /V /H /K /Y /Q "%backuplocation%\dataslot%selectedimportsource%\*" "%backuplocation%\dataslot%selectedimportdest%\"
@@ -265,7 +317,7 @@ if "!menumode2!"=="import" (
 )
 if "!menumode2!"=="createnoback" (
     if "!ops2!"=="CONFIRM" (
-        echo Naming Dataset "!newname:~0,50!" in Slot %selectedmanageslot% ...
+        echo Naming Dataset "!displayname:~0,50!" in Slot %selectedmanageslot% ...
         (echo %selectedmanageslot%)>"%starboundpath%\storage\set.bin"
         (echo !newname:~0,50!)>>"%starboundpath%\storage\set.bin"
         echo Cleaning destination Slot %selectedmanageslot%...
@@ -274,6 +326,16 @@ if "!menumode2!"=="createnoback" (
         call:makebackup %selectedmanageslot% !newname:~0,50!
         set missmatchdetect=0
         call:detectactivedataslot
+        timeout 1 > NUL
+        call:menuselect 0 & goto title
+    )
+)
+if "!menumode2!"=="namedbackup" (
+    if "!ops2!"=="CONFIRM" (
+        echo Naming New Backup "!displayname:~0,50!" in Active Slot %activedsnum% ...
+        echo Backup process started... 
+        timeout 1 > NUL
+        call:makebackup %activedsnum% %activedsnam% 1 !newname:~0,50!
         timeout 1 > NUL
         call:menuselect 0 & goto title
     )
@@ -449,6 +511,7 @@ if  "!selectedmanageslotname!"=="Empty" (
     )
 )
 %minig2%%g3%%la%color 0F
+set ops=0
 set /p ops=Type the corresponding number of your choice then press ENTER:
 set ops | FINDSTR /R /C:"[&""|()]">nul
 IF NOT ERRORLEVEL 1 set ops=0 >nul
@@ -463,15 +526,15 @@ if  "!selectedmanageslotname!"=="Empty" (
     if "%ops%"=="3" call:menuselect 3 manage & goto title
 ) else (
     if "%ops%"=="1" call:menuselect 2 rename & goto title
-    if NOT "!mathresult!"=="%activedsnum%" (
+    if NOT "!selectedmanageslot!"=="%activedsnum%" (
         if "%ops%"=="2" (
             set ops2=0
             echo WARNING: This will delete all backups of this slot.
-            set /p ops2=Please confirm by spelling "DELETE", anything else cancels:
+            set /p ops2=Please confirm by spelling "DELETESLOT%selectedmanageslot%", anything else cancels:
             set ops | FINDSTR /R /C:"[&""|()]">nul
             IF NOT ERRORLEVEL 1 set ops2=0 >nul
             echo.
-            if "!ops2!"=="DELETE" (
+            if "!ops2!"=="DELETESLOT%selectedmanageslot%" (
                 echo Deletion confirmed...
                 rd /Q /S "%backuplocation%\dataslot%selectedmanageslot%"
                 echo Done!
@@ -557,6 +620,8 @@ if "%~1"=="1" (
         set "menumode%~1=createnoback"
     ) else if "%~2"=="rename" (
         set "menumode%~1=rename"
+    ) else if "%~2"=="namedbackup" (
+        set "menumode%~1=namedbackup"
     ) else (
         set "menumode%~1="
     )
@@ -674,11 +739,12 @@ set "padding="
 call:math %~1 99
 if !mathresult!==1 set "hpadding=" & set "hdash="
 )
+set displayslotname=%~2
 if "%~1"=="%activedsnum%" (
-    set "slotline=  # [ACTIVE]-   !padding!%~3!hdash!-!hpadding!Slot!hpadding!%~1!padding!: %~2%spaces%"
+    set "slotline=  # [ACTIVE]-   !padding!%~3!hdash!-!hpadding!Slot!hpadding!%~1!padding!: %displayslotname:_= %%spaces%"
     set "slotline=!slotline:~0,66! -[ACTIVE] #"
 ) else (
-    set "slotline=  #             !padding!%~3!hdash!-!hpadding!Slot!hpadding!%~1!padding!: %~2%spaces%"
+    set "slotline=  #             !padding!%~3!hdash!-!hpadding!Slot!hpadding!%~1!padding!: %displayslotname:_= %%spaces%"
     set "slotline=!slotline:~0,76! #"
 )
 set menuslotselected%~3=%~1
@@ -701,11 +767,17 @@ for /f "tokens=1,* delims=:" %%a in ('findstr /n "^" "%backuplocation%\dataslot%
 for /l %%a in (1,1,60) do if "!trim:~-1!"==" " set trim=!trim:~0,-1!
 set currdataslotnam=!trim!
 goto:EOF
+REM --------------------------------------------------------------------------------readnamefrombackup :slot#: :backupname:
+:readnamefrombackup
+if %debug%==1 ( echo call:readnamefrombackup %1 %2 )
+set "var=1"
+for /f "tokens=1,* delims=:" %%a in ('findstr /n "^" "%backuplocation%\dataslot%~1\%~2\backupname.bin" ^|findstr "^%var%:"') do set tempbackupname=%%b
+goto:EOF
 REM --------------------------------------------------------------------------------Display active dataslot in head menu bar
 :displayactivedataslot
 if %debug%==1 ( echo call:displayactivedataslot %activedsnam% %activedsnum% )
 set "spaces=---------------------------------------------------------------"
-set "line=  /---{Active Data Slot :  %activedsnum% - %activedsnam%"
+set "line=  /---{Active Data Slot :  %activedsnum% - %activedsnam:_= %"
 set "line=%line:~0,73%}%spaces%"
 set "line=%line:~0,76%-\"
 echo %line%
@@ -719,7 +791,7 @@ IF "%~1"=="0" (
     set dataslotnameX=ERROR : Don't proceed
 )
 set "spaces=---------------------------------------------------------------"
-set "line=  /---{Selected Slot :  %~1 - !dataslotname%~1!"
+set "line=  /---{Selected Slot :  %~1 - !dataslotname%~1:_= !"
 IF  "!dataslotname%~1!"=="Empty" ( set emptyselectedslot=1 ) else ( set emptyselectedslot=0 )
 IF "%~1"=="%~2" (
     set "line=%line:~0,66%}[ACTIVE]%spaces%"
@@ -730,7 +802,7 @@ set "line=%line:~0,76%-\"
 echo %line%
 set selectedmanageslotname=!dataslotname%~1!
 goto:EOF
-REM --------------------------------------------------------------------------------makebackup :slot#: :name:
+REM --------------------------------------------------------------------------------makebackup :slot#: :name: :namedbackupswitch: :backupname:
 :makebackup
 if %debug%==1 ( echo call:makebackup %1 %2 )
 IF NOT exist "%backuplocation%\dataslot%~1" mkdir "%backuplocation%\dataslot%~1"
@@ -748,7 +820,35 @@ IF ErrorLevel 1 (
 ) else (
     set lastbackup=1
 )
-for /F "skip=%backups_to_keep% eol=| delims=" %%I in ('dir "%backuplocation%\dataslot%~1\backup_????-??-??_??-??-??" /AD /B /O-N 2^>nul') do rd /Q /S "%backuplocation%\dataslot%~1\%%I"
+if "%~3"=="1" (
+    set tempbackupname=%~4
+    set lastbackup_name=%~4
+    (echo !tempbackupname:~0,40!)>"%backuplocation%\dataslot%~1\backup_%stamp%\backupname.bin"
+    if %lastbackup%==1 set %lastbackup=3
+    if %lastbackup%==2 set %lastbackup=4
+)
+set SKIPCOUNT=%backups_to_keep%
+set COUNT=0
+for /F "delims=" %%a in ('dir /ad /o-n /b "%backuplocation%\dataslot%~1\backup_????-??-??_??-??-??"') do (
+    set /A COUNT=!COUNT! + 1
+    if %debug%==1 ( echo call:math !COUNT! !SKIPCOUNT! )
+    call:math !COUNT! !SKIPCOUNT!
+    if !mathresult!==1 (
+        IF NOT exist "%backuplocation%\dataslot%~1\%%a\backupname.bin" (
+            if %debug%==1 ( echo rd /Q /S "%backuplocation%\dataslot%~1\%%a" )
+            rd /Q /S "%backuplocation%\dataslot%~1\%%a"
+        ) else (
+            if %debug%==1 ( echo rd /Q /S "%backuplocation%\dataslot%~1\%%a"
+                for /f "tokens=1,* delims=:" %%b in ('findstr /n "^" "%backuplocation%\dataslot%~1\%%a\backupname.bin" ^|findstr "^1:"') do set tempbackupname=%%c
+                echo set /A SKIPCOUNT=!SKIPCOUNT! - 1
+                echo backup name: !tempbackupname! in %%a 
+            )
+            set /A SKIPCOUNT=!SKIPCOUNT! + 1
+        )
+    )
+)
+if %debug%==1 ( pause )
+rem for /F "skip=%backups_to_keep% eol=| delims=" %%I in ('dir "%backuplocation%\dataslot%~1\backup_????-??-??_??-??-??" /AD /B /O-N 2^>nul') do rd /Q /S "%backuplocation%\dataslot%~1\%%I"
 goto:EOF
 REM --------------------------------------------------------------------------------restore :slot#: :backupname:
 :restore
@@ -761,6 +861,7 @@ set "stamp=%YYYY%-%MM%-%DD%_%HH%-%Min%-%Sec%"
 set "lastrestore_stamp=%HH%:%Min%:%Sec%" & set lastrestore_slot=%~1 & set lastrestore_name=%~2
 RD /Q /S "%starboundpath%\storage\" & mkdir "%starboundpath%\storage"
 xcopy /s/e /V /H /K /Y /Q "%backuplocation%\dataslot%~1\%~2\*" "%starboundpath%\storage\"
+IF exist "%starboundpath%\storage\backupname.bin" del "%starboundpath%\storage\backupname.bin"
 IF ErrorLevel 1 (
     set lastrestore=2
 ) else (
@@ -816,8 +917,11 @@ REM ----------------------------------------------------------------------------
 echo Help:
 echo # Active Slot - Which dataset is actually active/used by Starbound
 echo # Backup      - Make an new backup for your Active Slot.
+echo #               m1 = Manual modifier, make a named backup that can't get pruned
 echo # Restore     - Lets you list your backups for your Active slot, and restore 
 echo #               from one.
+echo #               d# = d + backup slot lets you delete a backup after confirmation
+echo #                example: d8
 echo # Switch      - Lets you switch your Active Slot, making an automatic backup for 
 echo #               it before restoring an other slot as your Active Slot
 echo # Manage      - Will let you overview all yours Slots
