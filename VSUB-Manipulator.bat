@@ -393,11 +393,11 @@ if "!menumode3!"=="switch" (
     echo !lastline!
 ) else if "!menumode3!"=="createnoback" (
     if "!missmatchdetect!"=="1" (
-    echo   #    Your current active dataset doesn't have a name or associated slot    #
-    echo   #                       Select a dataslot to use:                          #
-    ) else (
     echo   #  Your current active dataset name doesn't match with its slot's backups  #
     echo   #         Select a new dataslot to use for your current dataset:           #
+    ) else (
+    echo   #    Your current active dataset doesn't have a name or associated slot    #
+    echo   #                       Select a dataslot to use:                          #
     )
     echo   # - - -%g3%%g3%%g3%              - - - #
     set COUNT=0
