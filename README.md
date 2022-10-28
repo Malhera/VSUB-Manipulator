@@ -45,4 +45,4 @@ At least with batch, it hides nothing, has no third party requirement, and works
 
 #### Credits
  - A vulpine
- - A friend who helped with dynamic variable trickery who doesn't care to be named
+ - A friend who helped with dynamic variable trickery and solving the multi-digit comparison issue. They prefer to stay anonymous for the time being.
